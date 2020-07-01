@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 
 public class ActionBarAPI extends JavaPlugin implements Listener {
@@ -24,8 +25,6 @@ public class ActionBarAPI extends JavaPlugin implements Listener {
         getConfig().options().copyDefaults(true);
         saveConfig();
 
-        CLUpdate clUpdate = new CLUpdate(this);
-
         Server server = getServer();
         ConsoleCommandSender console = server.getConsoleSender();
 
@@ -37,7 +36,6 @@ public class ActionBarAPI extends JavaPlugin implements Listener {
         }
 
         console.sendMessage(ChatColor.AQUA + getDescription().getName() + " V" + getDescription().getVersion() + " has been enabled!");
-        Bukkit.getPluginManager().registerEvents(clUpdate, this);
     }
 
     public static void sendActionBar(Player player, String message) {
@@ -62,7 +60,7 @@ public class ActionBarAPI extends JavaPlugin implements Listener {
                 Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + nmsver + ".IChatBaseComponent");
                 Method m3 = chatSerializerClass.getDeclaredMethod("a", String.class);
                 Object cbc = iChatBaseComponentClass.cast(m3.invoke(chatSerializerClass, "{\"text\": \"" + message + "\"}"));
-                packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(cbc, (byte) 2);
+                packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class, UUID.class}).newInstance(cbc, (byte) 2, UUID.randomUUID());
             } else {
                 Class<?> chatComponentTextClass = Class.forName("net.minecraft.server." + nmsver + ".ChatComponentText");
                 Class<?> iChatBaseComponentClass = Class.forName("net.minecraft.server." + nmsver + ".IChatBaseComponent");
@@ -76,10 +74,10 @@ public class ActionBarAPI extends JavaPlugin implements Listener {
                         }
                     }
                     Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
-                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);
+                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass, UUID.class}).newInstance(chatCompontentText, chatMessageType, UUID.randomUUID());
                 } catch (ClassNotFoundException cnfe) {
                     Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
-                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(chatCompontentText, (byte) 2);
+                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class, UUID.class}).newInstance(chatCompontentText, (byte) 2, UUID.randomUUID());
                 }
             }
             Method craftPlayerHandleMethod = craftPlayerClass.getDeclaredMethod("getHandle");
